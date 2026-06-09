@@ -3,7 +3,7 @@ class Course:
         self.course_id = course_id
         self.course_name = course_name
         self.trainer_name = trainer_name
-        self.capacity = capacity
+        self.capacity = int(capacity)
 
     def display(self):
         print(f"Course ID: {self.course_id}")
