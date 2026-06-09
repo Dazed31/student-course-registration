@@ -1,3 +1,4 @@
+import json
 from models.student import Student
 from models.course import Course
 
@@ -6,29 +7,26 @@ class SchoolSystem:
     def __init__(self):
         self.students = []
         self.courses = []
-        self.registrations = []
+        self.registrations = []  # stores {"student_id": "", "course_id": ""}
 
-    
-    # STUDENT FUNCTIONS
-    
-
+    # ---------------- STUDENTS ----------------
     def add_student(self):
         student_id = input("Student ID: ")
 
-        if student_id == "":
+        if not student_id:
             print("Student ID cannot be empty")
             return
 
-        for student in self.students:
-            if student.student_id == student_id:
-                print("Student ID already exists")
+        for s in self.students:
+            if s.student_id == student_id:
+                print("Student already exists")
                 return
 
         name = input("Name: ")
         email = input("Email: ")
         phone = input("Phone: ")
 
-        if name == "":
+        if not name:
             print("Name cannot be empty")
             return
 
@@ -36,13 +34,7 @@ class SchoolSystem:
             print("Invalid email")
             return
 
-        if phone == "":
-            print("Phone number cannot be empty")
-            return
-
-        new_student = Student(student_id, name, email, phone)
-        self.students.append(new_student)
-
+        self.students.append(Student(student_id, name, email, phone))
         print("Student added successfully")
 
     def view_students(self):
@@ -50,51 +42,26 @@ class SchoolSystem:
             print("No students found")
             return
 
-        for student in self.students:
-            student.display()
+        for s in self.students:
+            s.display()
             print()
 
-    def search_student(self):
-        keyword = input("Enter student ID or name: ")
-
-        found = False
-
-        for student in self.students:
-            if student.student_id == keyword or student.name.lower() == keyword.lower():
-                student.display()
-                print()
-                found = True
-
-        if not found:
-            print("Student not found")
-
-   
-    # COURSE FUNCTIONS
-    
-
+    # ---------------- COURSES ----------------
     def add_course(self):
         course_id = input("Course ID: ")
 
-        if course_id == "":
+        if not course_id:
             print("Course ID cannot be empty")
             return
 
-        for course in self.courses:
-            if course.course_id == course_id:
-                print("Course ID already exists")
+        for c in self.courses:
+            if c.course_id == course_id:
+                print("Course already exists")
                 return
 
         course_name = input("Course Name: ")
         trainer_name = input("Trainer Name: ")
         capacity = input("Capacity: ")
-
-        if course_name == "":
-            print("Course name cannot be empty")
-            return
-
-        if trainer_name == "":
-            print("Trainer name cannot be empty")
-            return
 
         try:
             capacity = int(capacity)
@@ -105,9 +72,7 @@ class SchoolSystem:
             print("Capacity must be a number")
             return
 
-        new_course = Course(course_id, course_name, trainer_name, capacity)
-        self.courses.append(new_course)
-
+        self.courses.append(Course(course_id, course_name, trainer_name, capacity))
         print("Course added successfully")
 
     def view_courses(self):
@@ -115,14 +80,11 @@ class SchoolSystem:
             print("No courses found")
             return
 
-        for course in self.courses:
-            course.display()
+        for c in self.courses:
+            c.display()
             print()
 
-    
-    # REGISTRATION FUNCTIONS
-  
-
+    # ---------------- REGISTRATION ----------------
     def register_student(self):
         student_id = input("Student ID: ")
         course_id = input("Course ID: ")
@@ -133,33 +95,29 @@ class SchoolSystem:
         for s in self.students:
             if s.student_id == student_id:
                 student = s
-                break
 
         for c in self.courses:
             if c.course_id == course_id:
                 course = c
-                break
 
-        if student is None:
-            print("Student not found")
+        if not student or not course:
+            print("Student or Course not found")
             return
 
-        if course is None:
-            print("Course not found")
-            return
-
-        for reg in self.registrations:
-            if reg["student_id"] == student_id and reg["course_id"] == course_id:
-                print(f"{student.name} is already registered for this course.")
+        # check duplicate
+        for r in self.registrations:
+            if r["student_id"] == student_id and r["course_id"] == course_id:
+                print("Student already registered for this course")
                 return
 
+        # check capacity
         count = 0
-        for reg in self.registrations:
-            if reg["course_id"] == course_id:
+        for r in self.registrations:
+            if r["course_id"] == course_id:
                 count += 1
 
         if count >= course.capacity:
-            print("Registration failed. This course is already full.")
+            print("Registration failed. Course is full")
             return
 
         self.registrations.append({
@@ -167,36 +125,52 @@ class SchoolSystem:
             "course_id": course_id
         })
 
-        print(f"{student.name} successfully registered for {course.course_name}.")
+        print(f"{student.name} successfully registered for {course.course_name}")
 
     def view_students_in_course(self):
         course_id = input("Course ID: ")
 
-        found = False
-
-        for reg in self.registrations:
-            if reg["course_id"] == course_id:
-                for student in self.students:
-                    if student.student_id == reg["student_id"]:
-                        student.display()
+        for r in self.registrations:
+            if r["course_id"] == course_id:
+                for s in self.students:
+                    if s.student_id == r["student_id"]:
+                        s.display()
                         print()
-                        found = True
-
-        if not found:
-            print("No students registered in this course.")
 
     def view_courses_for_student(self):
         student_id = input("Student ID: ")
 
-        found = False
+        for r in self.registrations:
+            if r["student_id"] == student_id:
+                for c in self.courses:
+                    if c.course_id == r["course_id"]:
+                        print(c.course_name)
 
-        for reg in self.registrations:
-            if reg["student_id"] == student_id:
-                for course in self.courses:
-                    if course.course_id == reg["course_id"]:
-                        course.display()
-                        print()
-                        found = True
+    # ---------------- SAVE / LOAD ----------------
+    def save_data(self):
+        with open("students.json", "w") as f:
+            json.dump([s.__dict__ for s in self.students], f)
 
-        if not found:
-            print("No courses found for this student.")
+        with open("courses.json", "w") as f:
+            json.dump([c.__dict__ for c in self.courses], f)
+
+        with open("registrations.json", "w") as f:
+            json.dump(self.registrations, f)
+
+        print("Data saved")
+
+    def load_data(self):
+        try:
+            with open("students.json", "r") as f:
+                self.students = [Student(**s) for s in json.load(f)]
+
+            with open("courses.json", "r") as f:
+                self.courses = [Course(**c) for c in json.load(f)]
+
+            with open("registrations.json", "r") as f:
+                self.registrations = json.load(f)
+
+            print("Data loaded")
+
+        except FileNotFoundError:
+            print("No saved data found")
