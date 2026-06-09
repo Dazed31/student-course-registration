@@ -2,7 +2,7 @@ from services.school_system import SchoolSystem
 
 
 def main():
-    system = SchoolSystem()
+    school_system = SchoolSystem()
 
     while True:
         print("\n===== Student Course Registration System =====")
@@ -11,48 +11,31 @@ def main():
         print("3. Add Course")
         print("4. View Courses")
         print("5. Register Student to Course")
-        print("6. View Students in Course")
-        print("7. View Courses for Student")
-        print("8. Save Data")
-        print("9. Load Data")
+        print("6. Save Data")
+        print("7. Load Data")
         print("0. Exit")
 
-        choice = input("Choose: ")
+        user_choice = input("Enter your choice: ")
 
-        if choice == "1":
-            system.add_student()
-
-        elif choice == "2":
-            system.view_students()
-
-        elif choice == "3":
-            system.add_course()
-
-        elif choice == "4":
-            system.view_courses()
-
-        elif choice == "5":
-            system.register_student()
-
-        elif choice == "6":
-            system.view_students_in_course()
-
-        elif choice == "7":
-            system.view_courses_for_student()
-
-        elif choice == "8":
-            system.save_data()
-
-        elif choice == "9":
-            system.load_data()
-
-        elif choice == "0":
-            print("Exiting...")
+        if user_choice == "1":
+            school_system.add_student()
+        elif user_choice == "2":
+            school_system.view_students()
+        elif user_choice == "3":
+            school_system.add_course()
+        elif user_choice == "4":
+            school_system.view_courses()
+        elif user_choice == "5":
+            school_system.register_student_to_course()
+        elif user_choice == "6":
+            school_system.save_data()
+        elif user_choice == "7":
+            school_system.load_data()
+        elif user_choice == "0":
+            print("Exiting program...")
             break
-
         else:
-            print("Invalid option")
+            print("Invalid choice. Please try again.")
 
 
-if __name__ == "__main__":
-    main()
+main()

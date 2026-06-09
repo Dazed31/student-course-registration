@@ -1,4 +1,6 @@
 import json
+import os
+
 from models.student import Student
 from models.course import Course
 
@@ -7,170 +9,140 @@ class SchoolSystem:
     def __init__(self):
         self.students = []
         self.courses = []
-        self.registrations = []  # stores {"student_id": "", "course_id": ""}
+        self.registrations = []
 
-    # ---------------- STUDENTS ----------------
+        self.data_folder_path = "data"
+
+    # ---------------- ADD STUDENT ----------------
     def add_student(self):
-        student_id = input("Student ID: ")
+        student_id = input("Enter student identification number: ")
+        student_name = input("Enter student full name: ")
+        student_email = input("Enter student email address: ")
+        student_phone_number = input("Enter student phone number: ")
 
-        if not student_id:
-            print("Student ID cannot be empty")
-            return
+        new_student = Student(student_id, student_name, student_email, student_phone_number)
+        self.students.append(new_student)
 
-        for s in self.students:
-            if s.student_id == student_id:
-                print("Student already exists")
-                return
+        print("Student added successfully!")
 
-        name = input("Name: ")
-        email = input("Email: ")
-        phone = input("Phone: ")
-
-        if not name:
-            print("Name cannot be empty")
-            return
-
-        if "@" not in email:
-            print("Invalid email")
-            return
-
-        self.students.append(Student(student_id, name, email, phone))
-        print("Student added successfully")
-
+    # ---------------- VIEW STUDENTS ----------------
     def view_students(self):
-        if len(self.students) == 0:
-            print("No students found")
-            return
+        for student in self.students:
+            print(
+                f"Student ID: {student.student_id}, "
+                f"Name: {student.name}, "
+                f"Email: {student.email}, "
+                f"Phone Number: {student.phone_number}"
+            )
 
-        for s in self.students:
-            s.display()
-            print()
-
-    # ---------------- COURSES ----------------
+    # ---------------- ADD COURSE ----------------
     def add_course(self):
-        course_id = input("Course ID: ")
+        course_id = input("Enter course identification number: ")
+        course_name = input("Enter course name: ")
+        trainer_name = input("Enter trainer full name: ")
+        course_capacity = int(input("Enter course capacity: "))
 
-        if not course_id:
-            print("Course ID cannot be empty")
-            return
+        new_course = Course(course_id, course_name, trainer_name, course_capacity)
+        self.courses.append(new_course)
 
-        for c in self.courses:
-            if c.course_id == course_id:
-                print("Course already exists")
-                return
+        print("Course added successfully!")
 
-        course_name = input("Course Name: ")
-        trainer_name = input("Trainer Name: ")
-        capacity = input("Capacity: ")
-
-        try:
-            capacity = int(capacity)
-            if capacity <= 0:
-                print("Capacity must be greater than 0")
-                return
-        except ValueError:
-            print("Capacity must be a number")
-            return
-
-        self.courses.append(Course(course_id, course_name, trainer_name, capacity))
-        print("Course added successfully")
-
+    # ---------------- VIEW COURSES ----------------
     def view_courses(self):
-        if len(self.courses) == 0:
-            print("No courses found")
-            return
+        for course in self.courses:
+            print(
+                f"Course ID: {course.course_id}, "
+                f"Course Name: {course.course_name}, "
+                f"Trainer Name: {course.trainer_name}, "
+                f"Course Capacity: {course.course_capacity}"
+            )
 
-        for c in self.courses:
-            c.display()
-            print()
+    # ---------------- REGISTER STUDENT ----------------
+    def register_student_to_course(self):
+        student_id = input("Enter student identification number: ")
+        course_id = input("Enter course identification number: ")
 
-    # ---------------- REGISTRATION ----------------
-    def register_student(self):
-        student_id = input("Student ID: ")
-        course_id = input("Course ID: ")
-
-        student = None
-        course = None
-
-        for s in self.students:
-            if s.student_id == student_id:
-                student = s
-
-        for c in self.courses:
-            if c.course_id == course_id:
-                course = c
-
-        if not student or not course:
-            print("Student or Course not found")
-            return
-
-        # check duplicate
-        for r in self.registrations:
-            if r["student_id"] == student_id and r["course_id"] == course_id:
-                print("Student already registered for this course")
+        # prevent duplicate registration
+        for registration in self.registrations:
+            if registration["student_id"] == student_id and registration["course_id"] == course_id:
+                print("This student is already registered for this course.")
                 return
 
-        # check capacity
-        count = 0
-        for r in self.registrations:
-            if r["course_id"] == course_id:
-                count += 1
+        # check course capacity
+        registration_count = 0
+        for registration in self.registrations:
+            if registration["course_id"] == course_id:
+                registration_count += 1
 
-        if count >= course.capacity:
-            print("Registration failed. Course is full")
-            return
+        for course in self.courses:
+            if course.course_id == course_id:
+                if registration_count >= course.course_capacity:
+                    print("Registration failed. This course is already full.")
+                    return
 
         self.registrations.append({
             "student_id": student_id,
             "course_id": course_id
         })
 
-        print(f"{student.name} successfully registered for {course.course_name}")
+        print("Student successfully registered for course!")
 
-    def view_students_in_course(self):
-        course_id = input("Course ID: ")
-
-        for r in self.registrations:
-            if r["course_id"] == course_id:
-                for s in self.students:
-                    if s.student_id == r["student_id"]:
-                        s.display()
-                        print()
-
-    def view_courses_for_student(self):
-        student_id = input("Student ID: ")
-
-        for r in self.registrations:
-            if r["student_id"] == student_id:
-                for c in self.courses:
-                    if c.course_id == r["course_id"]:
-                        print(c.course_name)
-
-    # ---------------- SAVE / LOAD ----------------
+    # ---------------- SAVE DATA ----------------
     def save_data(self):
-        with open("students.json", "w") as f:
-            json.dump([s.__dict__ for s in self.students], f)
+        students_file_path = os.path.join(self.data_folder_path, "students.json")
+        courses_file_path = os.path.join(self.data_folder_path, "courses.json")
+        registrations_file_path = os.path.join(self.data_folder_path, "registrations.json")
 
-        with open("courses.json", "w") as f:
-            json.dump([c.__dict__ for c in self.courses], f)
+        with open(students_file_path, "w") as students_file:
+            json.dump([student.__dict__ for student in self.students], students_file)
 
-        with open("registrations.json", "w") as f:
-            json.dump(self.registrations, f)
+        with open(courses_file_path, "w") as courses_file:
+            json.dump([course.__dict__ for course in self.courses], courses_file)
 
-        print("Data saved")
+        with open(registrations_file_path, "w") as registrations_file:
+            json.dump(self.registrations, registrations_file)
 
+        print("Data saved successfully!")
+
+    # ---------------- LOAD DATA ----------------
     def load_data(self):
         try:
-            with open("students.json", "r") as f:
-                self.students = [Student(**s) for s in json.load(f)]
+            students_file_path = os.path.join(self.data_folder_path, "students.json")
+            courses_file_path = os.path.join(self.data_folder_path, "courses.json")
+            registrations_file_path = os.path.join(self.data_folder_path, "registrations.json")
 
-            with open("courses.json", "r") as f:
-                self.courses = [Course(**c) for c in json.load(f)]
+            with open(students_file_path, "r") as students_file:
+                students_data = json.load(students_file)
+                self.students = []
 
-            with open("registrations.json", "r") as f:
-                self.registrations = json.load(f)
+                for student_data in students_data:
+                    self.students.append(
+                        Student(
+                            student_data["student_id"],
+                            student_data["name"],
+                            student_data["email"],
+                            student_data["phone_number"]
+                        )
+                    )
 
-            print("Data loaded")
+            with open(courses_file_path, "r") as courses_file:
+                courses_data = json.load(courses_file)
+                self.courses = []
+
+                for course_data in courses_data:
+                    self.courses.append(
+                        Course(
+                            course_data["course_id"],
+                            course_data["course_name"],
+                            course_data["trainer_name"],
+                            course_data["course_capacity"]
+                        )
+                    )
+
+            with open(registrations_file_path, "r") as registrations_file:
+                self.registrations = json.load(registrations_file)
+
+            print("Data loaded successfully!")
 
         except FileNotFoundError:
-            print("No saved data found")
+            print("No saved data found in the data folder.")
