@@ -15,27 +15,27 @@ def main():
         print("7. Load Data")
         print("0. Exit")
 
-        user_choice = input("Enter your choice: ")
+        choice = input("Enter your choice: ")
 
-        if user_choice == "1":
+        if choice == "1":
             school_system.add_student()
-        elif user_choice == "2":
+        elif choice == "2":
             school_system.view_students()
-        elif user_choice == "3":
+        elif choice == "3":
             school_system.add_course()
-        elif user_choice == "4":
+        elif choice == "4":
             school_system.view_courses()
-        elif user_choice == "5":
+        elif choice == "5":
             school_system.register_student_to_course()
-        elif user_choice == "6":
+        elif choice == "6":
             school_system.save_data()
-        elif user_choice == "7":
+        elif choice == "7":
             school_system.load_data()
-        elif user_choice == "0":
+        elif choice == "0":
             print("Exiting program...")
             break
         else:
-            print("Invalid choice. Please try again.")
+            print("Invalid choice")
 
 
 main()
