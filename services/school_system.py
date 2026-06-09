@@ -8,7 +8,7 @@ class SchoolSystem:
         self.courses = []
         self.registrations = []
 
-   
+    
     # STUDENT FUNCTIONS
     
 
@@ -54,9 +54,23 @@ class SchoolSystem:
             student.display()
             print()
 
-    
-    # COURSE FUNCTIONS
+    def search_student(self):
+        keyword = input("Enter student ID or name: ")
+
+        found = False
+
+        for student in self.students:
+            if student.student_id == keyword or student.name.lower() == keyword.lower():
+                student.display()
+                print()
+                found = True
+
+        if not found:
+            print("Student not found")
+
    
+    # COURSE FUNCTIONS
+    
 
     def add_course(self):
         course_id = input("Course ID: ")
@@ -104,3 +118,85 @@ class SchoolSystem:
         for course in self.courses:
             course.display()
             print()
+
+    
+    # REGISTRATION FUNCTIONS
+  
+
+    def register_student(self):
+        student_id = input("Student ID: ")
+        course_id = input("Course ID: ")
+
+        student = None
+        course = None
+
+        for s in self.students:
+            if s.student_id == student_id:
+                student = s
+                break
+
+        for c in self.courses:
+            if c.course_id == course_id:
+                course = c
+                break
+
+        if student is None:
+            print("Student not found")
+            return
+
+        if course is None:
+            print("Course not found")
+            return
+
+        for reg in self.registrations:
+            if reg["student_id"] == student_id and reg["course_id"] == course_id:
+                print(f"{student.name} is already registered for this course.")
+                return
+
+        count = 0
+        for reg in self.registrations:
+            if reg["course_id"] == course_id:
+                count += 1
+
+        if count >= course.capacity:
+            print("Registration failed. This course is already full.")
+            return
+
+        self.registrations.append({
+            "student_id": student_id,
+            "course_id": course_id
+        })
+
+        print(f"{student.name} successfully registered for {course.course_name}.")
+
+    def view_students_in_course(self):
+        course_id = input("Course ID: ")
+
+        found = False
+
+        for reg in self.registrations:
+            if reg["course_id"] == course_id:
+                for student in self.students:
+                    if student.student_id == reg["student_id"]:
+                        student.display()
+                        print()
+                        found = True
+
+        if not found:
+            print("No students registered in this course.")
+
+    def view_courses_for_student(self):
+        student_id = input("Student ID: ")
+
+        found = False
+
+        for reg in self.registrations:
+            if reg["student_id"] == student_id:
+                for course in self.courses:
+                    if course.course_id == reg["course_id"]:
+                        course.display()
+                        print()
+                        found = True
+
+        if not found:
+            print("No courses found for this student.")
